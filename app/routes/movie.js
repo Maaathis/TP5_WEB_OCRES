@@ -1,29 +1,48 @@
 var express = require('express');
 const _ = require('lodash');
 var router = express.Router();
+const axios = require('axios');
 
 // Create RAW data array
 let films = [{
-    nom : "Men In Black",
-    id: "0"
-  },
-  {
-    nom : "Spidder man",
-    id: "1"
-  },
-  {
-    nom : "Star Wars",
-    id: "2"
-  },
-  {
-    nom : "Harry Potter",
-    id: "3"
+    movie : "Men In Black",
+    id: "0",
+    yearOfRelease : 1997,
+    duration : 98,
+    actors : ["Will Smith", "Tommy Lee Jones"],
+    boxOffice : 20000000,
+    rottenTomatoesScore : 8.4
   }
 ];
 
 /* GET movie page. */
 router.get('/', function(req, res, next) {
   res.status(200).json({films});
+
+  axios.get('http://www.omdbapi.com/?t=inception&apikey=f08b51d2  ')
+    .then(({data}) => {
+      
+      const {imdbID} = data;
+      const {Title} = data;
+      const {Released} = data;
+      res.status(200).json({id : imdbID,
+                            film : Title,
+                            yearOfRelease : Released
+                          });
+    })
+    .catch(() => {res.status(200).json({message : error});})
+
+  /*axios.get('https://www.balldontlie.io/api/v1/players/237')
+    .then(({data}) => {
+      
+      const {first_name} = data;
+      const {weight_pounds} = data;
+      res.status(200).json({prenom : first_name,
+                            poids : weight_pounds
+                          });
+    })
+    .catch(() => {res.status(200).json({message : error});})*/
+  
 });
   
   /* GET one user. */
@@ -32,24 +51,37 @@ router.get('/', function(req, res, next) {
     // Find user in DB
     const film = _.find(films, ["id", id]);
     // Return user
-    res.status(200).json({
-      message: 'User found!',
-      film
-    });
+    if (film != null){
+      res.status(200).json({
+        message: 'User found!',
+        film
+      });
+    }
+    else{
+      res.status(200).json({
+        message: 'Not found!'
+      });
+    }
+    
   });
   
   /* PUT new user. */
   router.put('/', (req, res) => {
     // Get the data from request from request
-    const { nom } = req.body;
+    const { movie } = req.body;
+    const { yearOfRelease } = req.body;
+    const { duration } = req.body;
+    const { actors } = req.body;
+    const { boxOffice } = req.body;
+    const { rottenTomatoesScore } = req.body;
     // Create new unique id
     const id = _.uniqueId();
     // Insert it in array (normaly with connect the data with the database)
-    films.push({ nom, id });
+    films.push({ movie, id, yearOfRelease, duration, actors, boxOffice, rottenTomatoesScore });
     // Return message
     res.json({
       message: `Just added ${id}`,
-      nom: { nom, id }
+      film: { movie, id }
     });
   });
   
